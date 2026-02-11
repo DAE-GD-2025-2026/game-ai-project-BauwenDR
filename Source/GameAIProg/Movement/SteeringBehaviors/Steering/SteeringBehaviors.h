@@ -36,3 +36,14 @@ class Flee : public Seek
 public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
+
+class Arrive : public Seek
+{
+public:
+	Arrive(const ASteeringAgent* Agent);
+	
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+private:
+	float DefaultSpeed{};
+};
