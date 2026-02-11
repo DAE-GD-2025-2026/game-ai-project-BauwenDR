@@ -9,7 +9,7 @@ BlendedSteering::BlendedSteering(const std::vector<WeightedBehavior>& WeightedBe
 
 //****************
 //BLENDED STEERING
-SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+SteeringOutput BlendedSteering::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput BlendedSteering = {};
 	//TODO: Calculate the weighted average steeringbehavior
@@ -27,7 +27,7 @@ SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& 
 
 //*****************
 //PRIORITY STEERING
-SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+SteeringOutput PrioritySteering::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering = {};
 

@@ -13,7 +13,7 @@ public:
 	virtual ~ISteeringBehavior() = default;
 
 	// Override to implement your own behavior
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent) = 0;
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent);
 
 	void SetTarget(const FTargetData& NewTarget) { Target = NewTarget; }
 	
@@ -23,26 +23,31 @@ public:
 
 protected:
 	FTargetData Target;
+	
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent & Agent) = 0;
+	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering);
 };
 
 class Seek : public ISteeringBehavior
 {
-public:
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 };
 
 class Flee : public Seek
 {
-public:
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 };
 
 class Arrive : public Seek
 {
 public:
 	Arrive(const ASteeringAgent* Agent);
-	
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
 
 private:
 	float DefaultSpeed{};

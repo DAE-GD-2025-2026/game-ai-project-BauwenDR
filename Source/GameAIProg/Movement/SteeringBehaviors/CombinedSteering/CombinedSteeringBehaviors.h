@@ -24,7 +24,7 @@ public:
 	BlendedSteering(const std::vector<WeightedBehavior>& WeightedBehaviors);
 
 	void AddBehaviour(const WeightedBehavior& WeightedBehavior) { WeightedBehaviors.push_back(WeightedBehavior); }
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 
 	// returns a reference to the weighted behaviors, can be used to adjust weighting. Is not intended to alter the behaviors themselves.
 	std::vector<WeightedBehavior>& GetWeightedBehaviorsRef() { return WeightedBehaviors; }
@@ -45,7 +45,7 @@ public:
 	{}
 
 	void AddBehaviour(ISteeringBehavior* const pBehavior) { m_PriorityBehaviors.push_back(pBehavior); }
-	SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 
 private:
 	std::vector<ISteeringBehavior*> m_PriorityBehaviors = {};

@@ -2,41 +2,58 @@
 
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 
+SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{this->CalculateSteeringInternal(DeltaT, Agent)};
+	this->DrawDebugLines(DeltaT, Agent, Steering);
+
+	return Steering;
+}
+
+void ISteeringBehavior::DrawDebugLines(const float DeltaT, const ASteeringAgent &Agent, const SteeringOutput& Steering)
+{
+	if (Agent.GetDebugRenderingEnabled())
+	{
+		const FVector2D DebugLinearTarget = Agent.GetPosition() + Steering.LinearVelocity * Agent.GetLinearVelocity().Length() * DeltaT;
+		DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), FVector(DebugLinearTarget, 0.0f), 5.0f, FColor::Magenta);
+		
+		const FVector2D DebugAngularTarget = Agent.GetPosition() + Steering.AngularVelocity * Agent.GetLinearVelocity().Length() * DeltaT;
+		DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), FVector(DebugAngularTarget, 0.0f), 5.0f, FColor::Cyan);
+	}
+}
+
 //SEEK
 //*******
-SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+SteeringOutput Seek::CalculateSteeringInternal(const float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{};
 
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 
-	if (Agent.GetDebugRenderingEnabled())
-	{
-		// const FVector2D DebugTarget = Agent.GetPosition() + Steering.LinearVelocity / Steering.LinearVelocity.Length() * Agent.GetLinearVelocity().Length() * DeltaT;
-		// DrawDebugLine(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.0f), FVector(DebugTarget, 0.0f), FColor::Magenta);	// will be handy
-	}
-
 	return Steering;
 }
 
-SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+// Flee
+//*******
+SteeringOutput Flee::CalculateSteeringInternal(const float DeltaT, ASteeringAgent& Agent)
 {
-	SteeringOutput Steering{Seek::CalculateSteering(DeltaT, Agent)};
+	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
 	Steering.LinearVelocity = -Steering.LinearVelocity;
 
 	return Steering;
 }
 
+// Arrive
+//*******
 Arrive::Arrive(const ASteeringAgent* Agent)
 	: DefaultSpeed(Agent->GetMaxLinearSpeed())
 {}
 
-SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+SteeringOutput Arrive::CalculateSteeringInternal(const float DeltaT, ASteeringAgent& Agent)
 {
-	SteeringOutput Steering{Seek::CalculateSteering(DeltaT, Agent)};
+	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
 
-	double Distance{Steering.LinearVelocity.Length()};
-	if (Distance < 75.0)
+	if (const double Distance{Steering.LinearVelocity.Length()}; Distance < 75.0)
 	{
 		Agent.SetMaxLinearSpeed(0.0f);
 	} else if (Distance < 350.0) {
@@ -46,8 +63,13 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.SetMaxLinearSpeed(DefaultSpeed);
 	}
 
-	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.0f), 75.0f, 12, FColor::Red, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
-	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.0f), 350.0f, 12, FColor::Blue, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
-
 	return Steering;
+}
+
+void Arrive::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)
+{
+	Seek::DrawDebugLines(DeltaT, Agent, Steering);
+	
+	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), 75.0f, 12, FColor::Red, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
+	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), 350.0f, 12, FColor::Blue, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
 }
