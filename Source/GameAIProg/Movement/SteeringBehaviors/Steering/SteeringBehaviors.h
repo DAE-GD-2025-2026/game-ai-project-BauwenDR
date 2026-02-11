@@ -30,3 +30,9 @@ class Seek : public ISteeringBehavior
 public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
+
+class Flee : public Seek
+{
+public:
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
