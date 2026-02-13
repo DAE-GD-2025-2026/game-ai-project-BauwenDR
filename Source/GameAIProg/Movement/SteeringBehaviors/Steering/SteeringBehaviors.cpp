@@ -73,3 +73,20 @@ void Arrive::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const Ste
 	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), 75.0f, 12, FColor::Red, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
 	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), 350.0f, 12, FColor::Blue, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
 }
+
+SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering{};
+
+	const float CurrentRotation = FMath::DegreesToRadians(Agent.GetRotation());
+	Steering.AngularVelocity = FMath::Atan2(Target.Position.Y - Agent.GetPosition().Y, Target.Position.X - Agent.GetPosition().X) - CurrentRotation;
+
+	// Normalize the angular velocity to the range -pi to pi
+	if (Steering.AngularVelocity > PI) {
+		Steering.AngularVelocity -= 2 * PI;
+	} else if (Steering.AngularVelocity < -PI) {
+		Steering.AngularVelocity += 2 * PI;
+	}
+
+	return Steering;
+}

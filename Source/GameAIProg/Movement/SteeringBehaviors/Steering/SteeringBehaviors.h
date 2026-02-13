@@ -52,3 +52,12 @@ protected:
 private:
 	float DefaultSpeed{};
 };
+
+class Face : public ISteeringBehavior
+{
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+
+private:
+	float DefaultSpeed{};
+};
