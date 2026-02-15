@@ -14,7 +14,6 @@ ASteeringAgent::ASteeringAgent()
 void ASteeringAgent::BeginPlay()
 {
 	Super::BeginPlay();
-	//SetIsAutoOrienting(false);
 }
 
 void ASteeringAgent::BeginDestroy()

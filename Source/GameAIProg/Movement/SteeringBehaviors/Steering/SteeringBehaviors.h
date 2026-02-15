@@ -34,13 +34,13 @@ protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 };
 
-class Flee : public Seek
+class Flee final : public Seek
 {
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 };
 
-class Arrive : public Seek
+class Arrive final : public Seek
 {
 public:
 	Arrive(const ASteeringAgent* Agent);
@@ -62,7 +62,13 @@ private:
 	float DefaultSpeed{};
 };
 
-class Wander : public Seek
+class Pursuit final : public Seek
+{
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Wander final : public Seek
 {
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
