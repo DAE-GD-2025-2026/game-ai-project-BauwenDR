@@ -62,7 +62,13 @@ private:
 	float DefaultSpeed{};
 };
 
-class Pursuit final : public Seek
+class Pursuit : public Seek
+{
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Evade final : public Pursuit
 {
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;

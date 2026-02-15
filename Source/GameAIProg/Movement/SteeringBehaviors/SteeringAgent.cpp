@@ -28,8 +28,8 @@ void ASteeringAgent::Tick(float DeltaTime)
 
 	if (SteeringBehavior)
 	{
-		const SteeringOutput Output = SteeringBehavior->CalculateSteering(DeltaTime, *this);
-		const FQuat RotationDelta = FQuat(FVector::UpVector, Output.AngularVelocity * DeltaTime);
+		const SteeringOutput Output{SteeringBehavior->CalculateSteering(DeltaTime, *this)};
+		const FQuat RotationDelta{FQuat(FVector::UpVector, Output.AngularVelocity * DeltaTime)};
 		
 		AddMovementInput(FVector{Output.LinearVelocity, 0.f});
 		AddActorLocalRotation(RotationDelta);
