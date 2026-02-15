@@ -5,21 +5,24 @@
 SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{this->CalculateSteeringInternal(DeltaT, Agent)};
-	this->DrawDebugLines(DeltaT, Agent, Steering);
+
+	if (Agent.GetDebugRenderingEnabled())
+	{
+		this->DrawDebugLines(DeltaT, Agent, Steering);
+	}
 
 	return Steering;
 }
 
 void ISteeringBehavior::DrawDebugLines(const float DeltaT, const ASteeringAgent &Agent, const SteeringOutput& Steering)
 {
-	if (Agent.GetDebugRenderingEnabled())
-	{
-		const FVector2D DebugLinearTarget = Agent.GetPosition() + Steering.LinearVelocity * Agent.GetLinearVelocity().Length() * DeltaT;
-		DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), FVector(DebugLinearTarget, 0.0f), 5.0f, FColor::Magenta);
+	const FVector2D TargetLocation = Agent.GetPosition() + Steering.LinearVelocity.GetSafeNormal() * Agent.GetLinearVelocity().Length();
+	DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), FVector(TargetLocation, 0.0f), 5.0f, FColor::Magenta);
 		
-		const FVector2D DebugAngularTarget = Agent.GetPosition() + Steering.AngularVelocity * Agent.GetLinearVelocity().Length() * DeltaT;
-		DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), FVector(DebugAngularTarget, 0.0f), 5.0f, FColor::Cyan);
-	}
+	const FVector CurrentVelocityLocation = FVector(Agent.GetPosition(), 0.0f) + Agent.GetVelocity().GetSafeNormal() * Agent.GetLinearVelocity().Length();
+	DrawDebugDirectionalArrow(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), CurrentVelocityLocation, 5.0f, FColor::Cyan);
+	
+	DrawDebugCircle(Agent.GetWorld(), FVector(Target.Position, 0.1f), 10.0f, 12, FColor::Red, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, true);
 }
 
 //SEEK
@@ -29,7 +32,7 @@ SteeringOutput Seek::CalculateSteeringInternal(const float DeltaT, ASteeringAgen
 	SteeringOutput Steering{};
 
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
-
+	
 	return Steering;
 }
 
@@ -74,6 +77,8 @@ void Arrive::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const Ste
 	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition(), 0.1f), 350.0f, 12, FColor::Blue, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
 }
 
+// Face
+//*******
 SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{};
@@ -89,4 +94,25 @@ SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Age
 	}
 
 	return Steering;
+}
+
+// Wander
+//*******
+SteeringOutput Wander::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
+{
+	const FVector2D CircleCenter{Agent.GetVelocity().GetSafeNormal2D() * OffsetDistance};
+	const FVector2D Displacement{FMath::Cos(WanderAngle) * Radius, FMath::Sin(WanderAngle) * Radius};
+	
+	WanderAngle += FMath::FRand() * MaxAngleChange - MaxAngleChange * 0.5f;
+	
+	SetTarget(FTargetData(Agent.GetPosition() + CircleCenter + Displacement));
+	return Seek::CalculateSteeringInternal(DeltaT, Agent);
+}
+
+void Wander::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)
+{
+	Seek::DrawDebugLines(DeltaT, Agent, Steering);
+
+	const FVector2D CircleCenter{Agent.GetVelocity().GetSafeNormal2D() * OffsetDistance * 10.0f};
+	DrawDebugCircle(Agent.GetWorld(), FVector(Agent.GetPosition() + CircleCenter, 0.1f), Radius * 10.0f, 12, FColor::Red, false, -1, 0, 0, FVector{0, 1,0}, FVector{1,0,0}, false);
 }

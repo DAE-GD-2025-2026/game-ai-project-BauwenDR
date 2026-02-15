@@ -13,7 +13,7 @@ public:
 	virtual ~ISteeringBehavior() = default;
 
 	// Override to implement your own behavior
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent);
+	SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent);
 
 	void SetTarget(const FTargetData& NewTarget) { Target = NewTarget; }
 	
@@ -60,4 +60,17 @@ protected:
 
 private:
 	float DefaultSpeed{};
+};
+
+class Wander : public Seek
+{
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
+
+private:
+	float OffsetDistance{6.0f};
+	float Radius{4.0f};
+	float MaxAngleChange{FMath::DegreesToRadians(45.0f)};
+	float WanderAngle{0.0f};
 };
