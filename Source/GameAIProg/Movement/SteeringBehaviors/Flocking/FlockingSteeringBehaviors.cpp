@@ -3,16 +3,12 @@
 #include "../SteeringAgent.h"
 #include "../SteeringHelpers.h"
 
-
-//*******************
-//COHESION (FLOCKING)
-SteeringOutput Cohesion::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
-{
-	return SteeringOutput{};
-}
-
 //*********************
 //SEPARATION (FLOCKING)
 
 //*************************
 //VELOCITY MATCH (FLOCKING)
+SteeringOutput Cohesion::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
+{
+	return SteeringOutput{};
+}

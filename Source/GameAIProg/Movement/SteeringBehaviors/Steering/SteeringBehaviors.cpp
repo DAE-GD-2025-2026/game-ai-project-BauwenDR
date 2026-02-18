@@ -191,8 +191,12 @@ SteeringOutput Wander::CalculateSteeringInternal(float DeltaT, ASteeringAgent& A
 
 	WanderAngle += FMath::FRand() * MaxAngleChange - MaxAngleChange * 0.5f;
 
+	FTargetData OriginalTarget{Target};
 	SetTarget(FTargetData(Agent.GetPosition() + CircleCenter + Displacement));
-	return Seek::CalculateSteeringInternal(DeltaT, Agent);
+	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
+	SetTarget(OriginalTarget);
+	
+	return Steering;
 }
 
 void Wander::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)

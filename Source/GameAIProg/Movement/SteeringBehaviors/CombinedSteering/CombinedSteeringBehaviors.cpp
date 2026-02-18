@@ -9,16 +9,6 @@ BlendedSteering::BlendedSteering(const std::vector<WeightedBehavior>& WeightedBe
 
 //****************
 //BLENDED STEERING
-SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
-{
-	SteeringOutput BlendedSteering = {};
-	// TODO: Calculate the weighted average steeringbehavior
-	
-	// TODO: Add debug drawing
-
-	return BlendedSteering;
-}
-
 float* BlendedSteering::GetWeight(ISteeringBehavior* const SteeringBehavior)
 {
 	auto it = find_if(WeightedBehaviors.begin(),
@@ -35,9 +25,30 @@ float* BlendedSteering::GetWeight(ISteeringBehavior* const SteeringBehavior)
 	return nullptr;
 }
 
+SteeringOutput BlendedSteering::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput BlendedOutput{};
+
+	for (const auto& Behaviour : WeightedBehaviors)
+	{
+		Behaviour.pBehavior->SetTarget(Target);
+		
+		SteeringOutput Steering{Behaviour.pBehavior->CalculateSteering(DeltaT, Agent)};
+		BlendedOutput.LinearVelocity += Steering.LinearVelocity.GetSafeNormal() * Behaviour.Weight;
+		BlendedOutput.AngularVelocity += Steering.AngularVelocity * Behaviour.Weight;
+	}
+	
+	return BlendedOutput;
+}
+
+void BlendedSteering::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)
+{
+	ISteeringBehavior::DrawDebugLines(DeltaT, Agent, Steering);
+}
+
 //*****************
 //PRIORITY STEERING
-SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+SteeringOutput PrioritySteering::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering = {};
 
@@ -49,6 +60,6 @@ SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent&
 			break;
 	}
 
-	//If non of the behavior return a valid output, last behavior is returned
+	//If none of the behavior return a valid output, last behavior is returned
 	return Steering;
 }

@@ -196,6 +196,7 @@ bool ALevel_SteeringBehaviors::AddAgent(BehaviorTypes BehaviorType, bool AutoOri
 	if (IsValid(ImGuiAgent.Agent))
 	{
 		ImGuiAgent.SelectedBehavior = static_cast<int>(BehaviorType);
+		ImGuiAgent.Agent->SetIsAutoOrienting(AutoOrient);
 		ImGuiAgent.SelectedTarget = -1; // Mouse
 		
 		SetAgentBehavior(ImGuiAgent);

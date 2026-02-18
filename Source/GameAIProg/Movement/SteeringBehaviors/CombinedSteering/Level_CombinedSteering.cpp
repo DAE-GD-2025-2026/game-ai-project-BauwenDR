@@ -15,12 +15,18 @@ void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, {0, 0, 90}, FRotator::ZeroRotator);
+
+	auto SeekBehavior{BlendedSteering::WeightedBehavior{new Seek(), 0.5f}};
+	auto WanderBehavior{BlendedSteering::WeightedBehavior{new Wander(), 0.5f}};
+	pBlendedSteering = new BlendedSteering({SeekBehavior, WanderBehavior});
+	Agent->SetSteeringBehavior(pBlendedSteering);
+	Agent->SetDebugRenderingEnabled(CanDebugRender);
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
 {
 	Super::BeginDestroy();
-
 }
 
 // Called every frame
@@ -67,6 +73,7 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	
 		if (ImGui::Checkbox("Debug Rendering", &CanDebugRender))
 		{
+			Agent->SetDebugRenderingEnabled(CanDebugRender);
    // TODO: Handle the debug rendering of your agents here :)
 		}
 		ImGui::Checkbox("Trim World", &TrimWorld->bShouldTrimWorld);
@@ -84,21 +91,21 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
-
-		// ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
-		// 	pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
-		// 	[this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal; }, "%.2f");
-		//
-		// ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
-		// pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
-		// [this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal; }, "%.2f");
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
+			pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
+			[this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal; }, "%.2f");
+		
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
+		pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
+		[this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal; }, "%.2f");
 	
 		//End
 		ImGui::End();
 	}
 #pragma endregion
-	
+
+	pBlendedSteering->SetTarget(MouseTarget);
 	// Combined Steering Update
- // TODO: implement handling mouse click input for seek
- // TODO: implement Make sure to also evade the wanderer
+	// TODO: implement handling mouse click input for seek
+	// TODO: implement Make sure to also evade the wanderer
 }

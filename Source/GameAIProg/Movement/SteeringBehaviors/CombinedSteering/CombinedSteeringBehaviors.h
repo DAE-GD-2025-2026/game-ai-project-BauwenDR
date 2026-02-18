@@ -10,10 +10,10 @@ class BlendedSteering final: public ISteeringBehavior
 public:
 	struct WeightedBehavior
 	{
-		ISteeringBehavior* pBehavior = nullptr;
-		float Weight = 0.f;
+		ISteeringBehavior* pBehavior{};
+		float Weight{0.0f};
 
-		WeightedBehavior(ISteeringBehavior* const pBehavior, float Weight) :
+		WeightedBehavior(ISteeringBehavior* pBehavior, float Weight) :
 			pBehavior(pBehavior),
 			Weight(Weight)
 		{};
@@ -22,12 +22,14 @@ public:
 	BlendedSteering(const std::vector<WeightedBehavior>& WeightedBehaviors);
 
 	void AddBehaviour(const WeightedBehavior& WeightedBehavior) { WeightedBehaviors.push_back(WeightedBehavior); }
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 
 	float* GetWeight(ISteeringBehavior* const SteeringBehavior);
 	
 	// returns a reference to the weighted behaviors, can be used to adjust weighting. Is not intended to alter the behaviors themselves.
 	std::vector<WeightedBehavior>& GetWeightedBehaviorsRef() { return WeightedBehaviors; }
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
 
 private:
 	std::vector<WeightedBehavior> WeightedBehaviors = {};
@@ -45,7 +47,8 @@ public:
 	{}
 
 	void AddBehaviour(ISteeringBehavior* const pBehavior) { m_PriorityBehaviors.push_back(pBehavior); }
-	SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 
 private:
 	std::vector<ISteeringBehavior*> m_PriorityBehaviors = {};

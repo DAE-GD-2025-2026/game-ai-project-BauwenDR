@@ -9,8 +9,9 @@ class Cohesion final : public Seek
 public:
 	Cohesion(Flock* const pFlock) :pFlock(pFlock) {};
 
-	//Cohesion Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+
+protected:
+	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 
 private:
 	Flock* pFlock = nullptr;
