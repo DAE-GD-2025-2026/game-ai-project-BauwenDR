@@ -143,6 +143,7 @@ SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Age
 	SteeringOutput Steering{};
 
 	const float CurrentRotation = FMath::DegreesToRadians(Agent.GetRotation());
+	
 	Steering.AngularVelocity = FMath::Atan2(
 		Target.Position.Y - Agent.GetPosition().Y,
 		Target.Position.X - Agent.GetPosition().X
@@ -157,8 +158,6 @@ SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Age
 	{
 		Steering.AngularVelocity += 2 * PI;
 	}
-
-	Steering.AngularVelocity *= 4.0f;
 
 	return Steering;
 }
