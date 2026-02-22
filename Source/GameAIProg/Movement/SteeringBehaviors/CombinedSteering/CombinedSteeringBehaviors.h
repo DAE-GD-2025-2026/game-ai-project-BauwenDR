@@ -29,12 +29,9 @@ public:
 	std::vector<WeightedBehavior>& GetWeightedBehaviorsRef() { return WeightedBehaviors; }
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
-	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
 
 private:
 	std::vector<WeightedBehavior> WeightedBehaviors = {};
-
-	// using ISteeringBehavior::SetTarget; // made private because targets need to be set on the individual behaviors, not the combined behavior
 };
 
 //*****************
@@ -42,16 +39,14 @@ private:
 class PrioritySteering final: public ISteeringBehavior
 {
 public:
-	PrioritySteering(const std::vector<ISteeringBehavior*>& priorityBehaviors)
-		:m_PriorityBehaviors(priorityBehaviors) 
+	PrioritySteering(const std::vector<ISteeringBehavior*>& PriorityBehaviors)
+		:PriorityBehaviors(PriorityBehaviors) 
 	{}
 
-	void AddBehaviour(ISteeringBehavior* const pBehavior) { m_PriorityBehaviors.push_back(pBehavior); }
+	void AddBehaviour(ISteeringBehavior* const Behavior) { PriorityBehaviors.push_back(Behavior); }
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 
 private:
-	std::vector<ISteeringBehavior*> m_PriorityBehaviors = {};
-
-	// using ISteeringBehavior::SetTarget; // made private because targets need to be set on the individual behaviors, not the combined behavior
+	std::vector<ISteeringBehavior*> PriorityBehaviors = {};
 };

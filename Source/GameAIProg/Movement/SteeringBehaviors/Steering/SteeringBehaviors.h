@@ -56,9 +56,6 @@ class Face : public ISteeringBehavior
 {
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
-
-private:
-	float DefaultSpeed{};
 };
 
 class Pursuit : public Seek
@@ -71,6 +68,9 @@ class Evade final : public Pursuit
 {
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
+	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
+private:
+	float EvadeRadius{200.0f};
 };
 
 class Wander final : public Seek

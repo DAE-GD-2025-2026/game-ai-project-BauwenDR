@@ -32,7 +32,9 @@ private:
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 
-	ASteeringAgent* Agent{nullptr};
-	BlendedSteering* pBlendedSteering{};
-	//PrioritySteering* PrioritySteering{};
+	ASteeringAgent* BlendedAgent{nullptr};
+	BlendedSteering* BlendedSteeringBehavior{};
+	
+	ASteeringAgent* PriorityAgent{nullptr};
+	PrioritySteering* PrioritySteeringBehaviour{};
 };

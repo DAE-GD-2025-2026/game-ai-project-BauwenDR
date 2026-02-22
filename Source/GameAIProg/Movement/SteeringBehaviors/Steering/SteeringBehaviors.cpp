@@ -175,11 +175,34 @@ SteeringOutput Pursuit::CalculateSteeringInternal(float DeltaT, ASteeringAgent& 
 
 SteeringOutput Evade::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
+	const bool IsValid = (Target.Position - Agent.GetPosition()).SquaredLength() <= EvadeRadius*EvadeRadius;
+	
 	SteeringOutput Steering{Pursuit::CalculateSteeringInternal(DeltaT, Agent)};
 
 	Steering.LinearVelocity = -Steering.LinearVelocity;
+	Steering.IsValid = IsValid;
 
 	return Steering;
+}
+
+void Evade::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)
+{
+	DrawDebugCircle(
+		Agent.GetWorld(),
+		FVector(Agent.GetPosition(), 0.1f), 
+		EvadeRadius,
+		12,
+		Steering.IsValid ? FColor::Blue : FColor::Red,
+		false,
+		-1,
+		0,
+		0,
+		FVector{0, 1, 0},
+		FVector{1, 0, 0},
+		false
+	);
+	
+	Pursuit::DrawDebugLines(DeltaT, Agent, Steering);
 }
 
 // Wander
@@ -190,13 +213,9 @@ SteeringOutput Wander::CalculateSteeringInternal(float DeltaT, ASteeringAgent& A
 	const FVector2D Displacement{FMath::Cos(WanderAngle) * Radius, FMath::Sin(WanderAngle) * Radius};
 
 	WanderAngle += FMath::FRand() * MaxAngleChange - MaxAngleChange * 0.5f;
-
-	FTargetData OriginalTarget{Target};
 	SetTarget(FTargetData(Agent.GetPosition() + CircleCenter + Displacement));
-	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
-	SetTarget(OriginalTarget);
 	
-	return Steering;
+	return Seek::CalculateSteeringInternal(DeltaT, Agent);
 }
 
 void Wander::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)

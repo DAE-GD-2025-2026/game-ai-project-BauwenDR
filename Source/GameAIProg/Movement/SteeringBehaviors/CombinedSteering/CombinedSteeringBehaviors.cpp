@@ -29,7 +29,7 @@ SteeringOutput BlendedSteering::CalculateSteeringInternal(float DeltaT, ASteerin
 {
 	SteeringOutput BlendedOutput{};
 
-	for (const auto& Behaviour : WeightedBehaviors)
+	for (auto& Behaviour : WeightedBehaviors)
 	{
 		Behaviour.pBehavior->SetTarget(Target);
 		
@@ -41,20 +41,16 @@ SteeringOutput BlendedSteering::CalculateSteeringInternal(float DeltaT, ASteerin
 	return BlendedOutput;
 }
 
-void BlendedSteering::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering)
-{
-	ISteeringBehavior::DrawDebugLines(DeltaT, Agent, Steering);
-}
-
 //*****************
 //PRIORITY STEERING
 SteeringOutput PrioritySteering::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering = {};
 
-	for (ISteeringBehavior* const pBehavior : m_PriorityBehaviors)
+	for (const auto& Behavior : PriorityBehaviors)
 	{
-		Steering = pBehavior->CalculateSteering(DeltaT, Agent);
+		Behavior->SetTarget(Target);
+		Steering = Behavior->CalculateSteering(DeltaT, Agent);
 
 		if (Steering.IsValid)
 			break;
