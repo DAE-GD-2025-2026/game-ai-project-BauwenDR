@@ -75,10 +75,19 @@ private:
 	std::unique_ptr<BlendedSteering> pBlendedSteering{};
 	std::unique_ptr<PrioritySteering> pPrioritySteering{};
 
+	// Behaviour weights
+	float SeparationWeight{0.5f};
+	float CohesionWeight{0.5f};
+	float VelMatchWeight{0.5f};
+	float SeekWeight{0.5f};
+	float WanderWeight{0.5f};
+
 	// UI and rendering
 	bool DebugRenderSteering{false};
 	bool DebugRenderNeighborhood{true};
 	bool DebugRenderPartitions{true};
 
 	void RenderNeighborhood();
+
+	void UpdateWeights(float Separation, float Cohesion, float Alignment, float Seek, float Wander);
 };

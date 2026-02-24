@@ -18,8 +18,8 @@ Flock::Flock(
 
 	pBlendedSteering = std::make_unique<BlendedSteering>(BlendedSteering{
 		{
-			BlendedSteering::WeightedBehavior{pCohesionBehavior.get(), 0.5f},
 			BlendedSteering::WeightedBehavior{pSeparationBehavior.get(), 0.5f},
+			BlendedSteering::WeightedBehavior{pCohesionBehavior.get(), 0.5f},
 			BlendedSteering::WeightedBehavior{pVelMatchBehavior.get(), 0.5f},
 			BlendedSteering::WeightedBehavior{pSeekBehavior.get(), 0.5f},
 			BlendedSteering::WeightedBehavior{pWanderBehavior.get(), 0.5f},
@@ -28,7 +28,20 @@ Flock::Flock(
 	pPrioritySteering = std::make_unique<PrioritySteering>(PrioritySteering{{pEvadeBehavior.get(), pBlendedSteering.get()}});
 
 	Neighbors.Reserve(FlockSize);
- // TODO: initialize the flock and the memory pool
+
+	FRandomStream RandomStream;
+	RandomStream.GenerateNewSeed();
+	int Index{0};
+	while (Index < FlockSize)
+	{
+		// Generate a random location within the specified radius
+		FVector RandomLocation = RandomStream.VRand() * WorldSize / 2.0f;
+
+		// Spawn the actor at the random location
+		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator)};
+
+		if (Agent != nullptr) ++Index;
+	}
 }
 
 Flock::~Flock()
@@ -98,8 +111,17 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
-  // TODO: implement ImGUI sliders for steering behavior weights here
-		ImGui::SliderFloat("");
+		float Cohesion{CohesionWeight};
+		float Separation{SeparationWeight};
+		float Alignment{VelMatchWeight};
+		float Seek{SeekWeight};
+		float Wander{WanderWeight};
+		
+		ImGui::SliderFloat("Separation", &Separation, 0.0f, 1.0f, "0.1f");
+		ImGui::SliderFloat("Cohesion", &Cohesion, 0.0f, 1.0f, "0.1f");
+		ImGui::SliderFloat("Alignment", &Alignment, 0.0f, 1.0f, "0.1f");
+		ImGui::SliderFloat("Seek", &Seek, 0.0f, 1.0f, "0.1f");
+		ImGui::SliderFloat("Wander", &Wander, 0.0f, 1.0f, "0.1f");
 		//End
 		ImGui::End();
 	}
@@ -110,6 +132,31 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 void Flock::RenderNeighborhood()
 {
  // TODO: Debugrender the neighbors for the first agent in the flock
+}
+
+void Flock::UpdateWeights(float Separation, float Cohesion, float Alignment, float Seek, float Wander)
+{
+	if (
+		Separation == SeparationWeight &&
+		Cohesion == CohesionWeight &&
+		Alignment == VelMatchWeight &&
+		Seek == SeekWeight &&
+		Wander == WanderWeight
+	) {
+		return;
+	}
+
+	SeparationWeight = Separation;
+	CohesionWeight = Cohesion;
+	VelMatchWeight = Alignment;
+	SeekWeight = Seek;
+	WanderWeight = Wander;
+
+	pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = Separation;
+	pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = Cohesion;
+	pBlendedSteering->GetWeightedBehaviorsRef()[2].Weight = Alignment;
+	pBlendedSteering->GetWeightedBehaviorsRef()[3].Weight = Seek;
+	pBlendedSteering->GetWeightedBehaviorsRef()[4].Weight = Wander;
 }
 
 #ifndef GAMEAI_USE_SPACE_PARTITIONING
@@ -165,6 +212,7 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 
 void Flock::SetTarget_Seek(FSteeringParams const& Target)
 {
- // TODO: Implement
+	pPrioritySteering->SetTarget(Target);
+	pSeekBehavior->SetTarget(Target);
 }
 
