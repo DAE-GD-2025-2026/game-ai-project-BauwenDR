@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <iterator>
+#include <set>
 
 #include "Debug/ReporterGraph.h"
 #include "Movement/SteeringBehaviors/SteeringAgent.h"
@@ -23,8 +24,8 @@ struct Cell final
 	std::vector<FVector2D> GetRectPoints() const;
 	
 	// all the agents currently in this cell
-	std::list<ASteeringAgent*> Agents;
-	FRect BoundingBox;
+	std::set<ASteeringAgent*> Agents{};
+	FRect BoundingBox{};
 };
 
 // --- Partitioned Space ---
@@ -34,10 +35,10 @@ class CellSpace final
 public:
 	CellSpace(UWorld* pWorld, float Width, float Height, int Rows, int Cols, int MaxEntities);
 
-	void AddAgent(ASteeringAgent& Agent);
-	void UpdateAgentCell(ASteeringAgent& Agent, const FVector2D& OldPos);
+	void AddAgent(ASteeringAgent* Agent);
+	void UpdateAgentCell(ASteeringAgent* Agent, const FVector2D& OldPos);
 
-	void RegisterNeighbors(ASteeringAgent& Agent, float QueryRadius);
+	void RegisterNeighbors(ASteeringAgent* Agent, float QueryRadius);
 	const TArray<ASteeringAgent*>& GetNeighbors() const { return Neighbors; }
 	int GetNrOfNeighbors() const { return NrOfNeighbors; }
 

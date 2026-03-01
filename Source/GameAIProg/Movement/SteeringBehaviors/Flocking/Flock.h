@@ -61,7 +61,7 @@ private:
 	int NrOfNeighbors{0};
 #endif // USE_SPACE_PARTITIONING
 	
-	float NeighborhoodRadius{100.f};
+	float NeighborhoodRadius{200.f};
 
 	ASteeringAgent* pAgentToEvade{nullptr};
 	

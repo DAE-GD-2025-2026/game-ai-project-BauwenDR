@@ -17,6 +17,7 @@ Flock::Flock(
 
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 	pPartitionedSpace = std::make_unique<CellSpace>(pWorld, 2000, 2000, NrOfCellsY, NrOfCellsX, FlockSize);
+	OldPositions.SetNum(FlockSize);
 #else 
 	Neighbors.SetNum(FlockSize);
 #endif
@@ -58,9 +59,14 @@ Flock::Flock(
 		if (Agent == nullptr) continue;
 		
 		Agent->SetDebugRenderingEnabled(false);
+
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+		pPartitionedSpace->AddAgent(Agent);
+		OldPositions[Index] = Agent->GetPosition();
+#endif
 		
 		Agents[Index] = Agent;
-		Index++;
+		++Index;
 	}
 }
 
@@ -74,7 +80,8 @@ void Flock::Tick(float DeltaTime)
 	for (int Index{0}; Index < FlockSize; ++Index)
 	{
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
-		pPartitionedSpace->RegisterNeighbors(*Agents[Index], NeighborhoodRadius);
+		pPartitionedSpace->UpdateAgentCell(Agents[Index], OldPositions[Index]);
+		pPartitionedSpace->RegisterNeighbors(Agents[Index], NeighborhoodRadius);
 #else 
 		RegisterNeighbors(Agents[Index]);
 #endif
@@ -82,6 +89,8 @@ void Flock::Tick(float DeltaTime)
 		const SteeringOutput Output{pPrioritySteering->CalculateSteering(DeltaTime, *Agents[Index])};
 		
 		Agents[Index]->AddMovementInput(FVector{Output.LinearVelocity, 0.f});
+
+		OldPositions[Index] = Agents[Index]->GetPosition();
 	}
 	
 	if (pAgentToEvade)
@@ -186,12 +195,17 @@ void Flock::RenderNeighborhood()
 	if (DebugRenderNeighborhood)
 	{
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
-		pPartitionedSpace->RegisterNeighbors(*Agents[0], NeighborhoodRadius);
+		pPartitionedSpace->RegisterNeighbors(Agents[0], NeighborhoodRadius);
 #else 
 		RegisterNeighbors(Agents[0]);
 #endif
 		
 		auto pos = GetAverageNeighborPos();
+
+		if (pos == FVector2D::ZeroVector)
+		{
+			pos = Agents[0]->GetPosition();
+		}
 
 		DrawDebugCircle(
 			pWorld,

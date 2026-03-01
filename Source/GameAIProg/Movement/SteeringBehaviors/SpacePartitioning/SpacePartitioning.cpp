@@ -51,21 +51,55 @@ CellSpace::CellSpace(UWorld* pWorld, float Width, float Height, int Rows, int Co
 	}
 }
 
-void CellSpace::AddAgent(ASteeringAgent& Agent)
+void CellSpace::AddAgent(ASteeringAgent* Agent)
 {
-	// TODO Add the agent to the correct cell
+	const auto CellIndex{PositionToIndex(Agent->GetPosition())};
+	Cells[CellIndex].Agents.insert(Agent);
 }
 
-void CellSpace::UpdateAgentCell(ASteeringAgent& Agent, const FVector2D& OldPos)
+void CellSpace::UpdateAgentCell(ASteeringAgent* Agent, const FVector2D& OldPos)
 {
-	//TODO Check if the agent needs to be moved to another cell.
-	//TODO Use the calculated index for oldPos and currentPos for this
+	const FVector2D CurrentPos = Agent->GetPosition();
+	const int OldCellIndex = PositionToIndex(OldPos);
+	const int NewCellIndex = PositionToIndex(CurrentPos);
+
+	if (OldCellIndex != NewCellIndex)
+	{
+		Cells[OldCellIndex].Agents.erase(Agent);
+		Cells[NewCellIndex].Agents.insert(Agent);
+	}
 }
 
-void CellSpace::RegisterNeighbors(ASteeringAgent& Agent, float QueryRadius)
+void CellSpace::RegisterNeighbors(ASteeringAgent* Agent, float QueryRadius)
 {
-	// TODO Register the neighbors for the provided agent
-	// TODO Only check the cells that are within the radius of the neighborhood
+	NrOfNeighbors = 0;
+
+	const auto Position{Agent->GetPosition()};
+
+	const int StartRow{FMath::Clamp(static_cast<int>((Position.Y - CellOrigin.Y - QueryRadius) / CellHeight), 0, NrOfRows-1)};
+	const int EndRow{FMath::Clamp(static_cast<int>((Position.Y - CellOrigin.Y + QueryRadius) / CellHeight), 0, NrOfRows-1)};
+	const int StartCol{FMath::Clamp(static_cast<int>((Position.X - CellOrigin.X - QueryRadius) / CellWidth), 0, NrOfCols-1)};
+	const int EndCol{FMath::Clamp(static_cast<int>((Position.X - CellOrigin.X + QueryRadius) / CellWidth), 0, NrOfCols-1)};
+    
+	for (int Col{StartCol}; Col <= EndCol; ++Col)
+	{
+		for (int Row{StartRow}; Row <= EndRow; ++Row)
+		{
+				for (ASteeringAgent* Neighbor : Cells[NrOfCols * Row + Col].Agents)
+				{
+					if (Neighbor != Agent)
+					{
+						const float Distance = FVector2D::DistSquared(Neighbor->GetPosition(), Position);
+						if (Distance <= QueryRadius * QueryRadius)
+						{
+							Neighbors[NrOfNeighbors] = Neighbor;
+							++NrOfNeighbors;
+						}
+					}
+			}
+		}
+	}
+
 }
 
 void CellSpace::EmptyCells()
@@ -88,10 +122,10 @@ void CellSpace::RenderCells() const
 
 int CellSpace::PositionToIndex(FVector2D const & Pos) const
 {
-	const int Row{FMath::Clamp(static_cast<int>((CellOrigin.Y - Pos.Y) / CellHeight), 0, NrOfRows)};
-	const int Col{FMath::Clamp(static_cast<int>((CellOrigin.X - Pos.X) / CellWidth), 0, NrOfCols)};
+	const int Row{FMath::Clamp(static_cast<int>((Pos.Y - CellOrigin.Y) / CellHeight), 0, NrOfRows-1)};
+	const int Col{FMath::Clamp(static_cast<int>((Pos.X - CellOrigin.X) / CellWidth), 0, NrOfCols-1)};
 	
-	return Col * Row + Col;
+	return NrOfCols * Row + Col;
 }
 
 bool CellSpace::DoRectsOverlap(FRect const & RectA, FRect const & RectB)
