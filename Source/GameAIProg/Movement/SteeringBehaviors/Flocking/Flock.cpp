@@ -15,7 +15,16 @@ Flock::Flock(
 	, pAgentToEvade{pAgentToEvade}
 {
 	Agents.SetNum(FlockSize);
+	Neighbors.SetNum(FlockSize);
 
+	pSeparationBehavior = std::make_unique<Separation>(this);
+	pCohesionBehavior = std::make_unique<Cohesion>(this);
+	pVelMatchBehavior = std::make_unique<VelocityMatch>(this);
+	pSeekBehavior = std::make_unique<Seek>();
+	pWanderBehavior = std::make_unique<Wander>();
+	pEvadeBehavior = std::make_unique<Evade>(500.0f);
+
+	pEvadeWader = std::make_unique<Wander>();
 	pBlendedSteering = std::make_unique<BlendedSteering>(BlendedSteering{
 		{
 			BlendedSteering::WeightedBehavior{pSeparationBehavior.get(), 0.5f},
@@ -27,8 +36,6 @@ Flock::Flock(
 	});
 	pPrioritySteering = std::make_unique<PrioritySteering>(PrioritySteering{{pEvadeBehavior.get(), pBlendedSteering.get()}});
 
-	Neighbors.Reserve(FlockSize);
-
 	FRandomStream RandomStream;
 	RandomStream.GenerateNewSeed();
 	int Index{0};
@@ -36,12 +43,19 @@ Flock::Flock(
 	{
 		// Generate a random location within the specified radius
 		FVector RandomLocation = RandomStream.VRand() * WorldSize / 2.0f;
+		RandomLocation.Z = 0.0f;
 
 		// Spawn the actor at the random location
 		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator)};
 
-		if (Agent != nullptr) ++Index;
+		if (Agent == nullptr) continue;
+		
+		Agent->SetDebugRenderingEnabled(false);
+		
+		Agents[Index] = Agent;
+		Index++;
 	}
+
 }
 
 Flock::~Flock()
@@ -51,21 +65,55 @@ Flock::~Flock()
 
 void Flock::Tick(float DeltaTime)
 {
-	for (const auto &agent : Agents)
+	for (int Index{0}; Index < FlockSize; ++Index)
 	{
-		RegisterNeighbors(agent);
+		RegisterNeighbors(Agents[Index]);
 
-		const SteeringOutput Output{pPrioritySteering->CalculateSteering(DeltaTime, *agent)};
+		if (Agents[Index] == nullptr || pBlendedSteering == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Agent was null at index %d"), Index);
+			continue;
+		}
 		
-		agent->AddMovementInput(FVector{Output.LinearVelocity, 0.f});
+		if (pPrioritySteering == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Blended steering was null at index %d"), Index);
+			continue;
+		}
+		
+		const SteeringOutput Output{pPrioritySteering->CalculateSteering(DeltaTime, *Agents[Index])};
+		
+		Agents[Index]->AddMovementInput(FVector{Output.LinearVelocity, 0.f});
 		
 		// TODO: trim the agent to the world
+	}
+	
+	if (pAgentToEvade)
+	{
+		const SteeringOutput Steering{pEvadeWader->CalculateSteering(DeltaTime, *pAgentToEvade)};
+		pAgentToEvade->AddMovementInput(FVector{Steering.LinearVelocity, 0.0f});
 	}
 }
 
 void Flock::RenderDebug()
 {
- // TODO: Render all the agents in the flock
+	RegisterNeighbors(Agents[0]);
+	auto pos = GetAverageNeighborPos();
+	
+	DrawDebugCircle(
+		pWorld,
+		FVector(pos, 10.0f),
+		10.0f,
+		12,
+		FColor::Purple,
+		false,
+		-1,
+		0,
+		0,
+		FVector{0, 1, 0},
+		FVector{1, 0, 0},
+		true
+	);
 }
 
 void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
@@ -117,11 +165,14 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		float Seek{SeekWeight};
 		float Wander{WanderWeight};
 		
-		ImGui::SliderFloat("Separation", &Separation, 0.0f, 1.0f, "0.1f");
-		ImGui::SliderFloat("Cohesion", &Cohesion, 0.0f, 1.0f, "0.1f");
-		ImGui::SliderFloat("Alignment", &Alignment, 0.0f, 1.0f, "0.1f");
-		ImGui::SliderFloat("Seek", &Seek, 0.0f, 1.0f, "0.1f");
-		ImGui::SliderFloat("Wander", &Wander, 0.0f, 1.0f, "0.1f");
+		ImGui::SliderFloat("Separation", &Separation, 0.0f, 1.0f, "%.1f");
+		ImGui::SliderFloat("Cohesion", &Cohesion, 0.0f, 1.0f, "%.1f");
+		ImGui::SliderFloat("Alignment", &Alignment, 0.0f, 1.0f, "%.1f");
+		ImGui::SliderFloat("Seek", &Seek, 0.0f, 1.0f, "%.1f");
+		ImGui::SliderFloat("Wander", &Wander, 0.0f, 1.0f, "%.1f");
+
+		UpdateWeights(Separation, Cohesion, Alignment, Seek, Wander);
+		
 		//End
 		ImGui::End();
 	}
@@ -163,13 +214,13 @@ void Flock::UpdateWeights(float Separation, float Cohesion, float Alignment, flo
 void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 {
 	NrOfNeighbors = 0;
-	for (const auto& agent : Agents)
+	for (int Index{0}; Index < FlockSize; ++Index)
 	{
-		if (agent == pAgent) continue;
+		if (Agents[Index] == pAgent) continue;
 		
-		if ((agent->GetPosition() - pAgent->GetPosition()).SquaredLength() <= NeighborhoodRadius*NeighborhoodRadius)
+		if ((Agents[Index]->GetPosition() - pAgent->GetPosition()).SquaredLength() <= NeighborhoodRadius*NeighborhoodRadius)
 		{
-			Neighbors[NrOfNeighbors] = agent;
+			Neighbors[NrOfNeighbors] = Agents[Index];
 			NrOfNeighbors++;
 		}
 	}
@@ -185,9 +236,9 @@ FVector2D Flock::GetAverageNeighborPos() const
 		return AvgPosition;
 	}
 
-	for (const auto& Agent : Neighbors)
+	for (int Index{0}; Index < NrOfNeighbors; ++Index)
 	{
-		AvgPosition += Agent->GetPosition();
+		AvgPosition += Agents[Index]->GetPosition();
 	}
 	
 	return AvgPosition / NrOfNeighbors;
@@ -201,10 +252,10 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	{
 		return AvgVelocity;
 	}
-
-	for (const auto& Agent : Neighbors)
+	
+	for (int Index{0}; Index < NrOfNeighbors; ++Index)
 	{
-		AvgVelocity += Agent->GetLinearVelocity();
+		AvgVelocity += Agents[Index]->GetLinearVelocity();
 	}
 
 	return AvgVelocity / NrOfNeighbors;
@@ -212,7 +263,12 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 
 void Flock::SetTarget_Seek(FSteeringParams const& Target)
 {
-	pPrioritySteering->SetTarget(Target);
-	pSeekBehavior->SetTarget(Target);
+	if(pAgentToEvade)
+	{
+		pPrioritySteering->SetTarget(FTargetData{
+			pAgentToEvade->GetPosition(),
+			pAgentToEvade->GetRotation(),
+			pAgentToEvade->GetLinearVelocity(),
+			pAgentToEvade->GetAngularVelocity(),
+		});
 }
-

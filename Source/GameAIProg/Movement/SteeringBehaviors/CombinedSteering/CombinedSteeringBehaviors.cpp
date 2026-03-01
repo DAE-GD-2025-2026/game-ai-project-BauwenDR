@@ -50,6 +50,7 @@ SteeringOutput PrioritySteering::CalculateSteeringInternal(float DeltaT, ASteeri
 	for (const auto& Behavior : PriorityBehaviors)
 	{
 		Behavior->SetTarget(Target);
+		UE_LOG(LogTemp, Warning, TEXT("Agent to evade: %f"), Target.Position.X)
 		Steering = Behavior->CalculateSteering(DeltaT, Agent);
 
 		if (Steering.IsValid)

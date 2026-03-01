@@ -75,6 +75,8 @@ private:
 	std::unique_ptr<BlendedSteering> pBlendedSteering{};
 	std::unique_ptr<PrioritySteering> pPrioritySteering{};
 
+	std::unique_ptr<Wander> pEvadeWader{};
+
 	// Behaviour weights
 	float SeparationWeight{0.5f};
 	float CohesionWeight{0.5f};

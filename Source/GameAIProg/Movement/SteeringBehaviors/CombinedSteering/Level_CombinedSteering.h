@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "CombinedSteeringBehaviors.h"
 #include "GameAIProg/Shared/Level_Base.h"
-#include "GameAIProg/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 #include "Level_CombinedSteering.generated.h"
 

@@ -66,11 +66,13 @@ protected:
 
 class Evade final : public Pursuit
 {
+public:
+	Evade(float EvadeRadius = 200.0f) : EvadeRadius(EvadeRadius) {}
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
 private:
-	float EvadeRadius{200.0f};
+	float EvadeRadius{};
 };
 
 class Wander final : public Seek
