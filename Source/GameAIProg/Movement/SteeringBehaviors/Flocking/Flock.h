@@ -78,11 +78,11 @@ private:
 	std::unique_ptr<Wander> pEvadeWader{};
 
 	// Behaviour weights
-	float SeparationWeight{0.5f};
-	float CohesionWeight{0.5f};
-	float VelMatchWeight{0.5f};
-	float SeekWeight{0.5f};
-	float WanderWeight{0.5f};
+	float SeparationWeight{0.6f};
+	float CohesionWeight{0.4f};
+	float VelMatchWeight{0.3f};
+	float SeekWeight{0.1f};
+	float WanderWeight{0.6f};
 
 	// UI and rendering
 	bool DebugRenderSteering{false};

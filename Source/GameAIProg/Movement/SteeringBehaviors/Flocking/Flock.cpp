@@ -22,16 +22,16 @@ Flock::Flock(
 	pVelMatchBehavior = std::make_unique<VelocityMatch>(this);
 	pSeekBehavior = std::make_unique<Seek>();
 	pWanderBehavior = std::make_unique<Wander>();
-	pEvadeBehavior = std::make_unique<Evade>(500.0f);
+	pEvadeBehavior = std::make_unique<Evade>(600.0f);
 
 	pEvadeWader = std::make_unique<Wander>();
 	pBlendedSteering = std::make_unique<BlendedSteering>(BlendedSteering{
 		{
-			BlendedSteering::WeightedBehavior{pSeparationBehavior.get(), 0.5f},
-			BlendedSteering::WeightedBehavior{pCohesionBehavior.get(), 0.5f},
-			BlendedSteering::WeightedBehavior{pVelMatchBehavior.get(), 0.5f},
-			BlendedSteering::WeightedBehavior{pSeekBehavior.get(), 0.5f},
-			BlendedSteering::WeightedBehavior{pWanderBehavior.get(), 0.5f},
+			BlendedSteering::WeightedBehavior{pSeparationBehavior.get(), SeparationWeight},
+			BlendedSteering::WeightedBehavior{pCohesionBehavior.get(), CohesionWeight},
+			BlendedSteering::WeightedBehavior{pVelMatchBehavior.get(), VelMatchWeight},
+			BlendedSteering::WeightedBehavior{pSeekBehavior.get(), SeekWeight},
+			BlendedSteering::WeightedBehavior{pWanderBehavior.get(), WanderWeight},
 		},
 	});
 	pPrioritySteering = std::make_unique<PrioritySteering>(PrioritySteering{{pEvadeBehavior.get(), pBlendedSteering.get()}});
@@ -265,10 +265,13 @@ void Flock::SetTarget_Seek(FSteeringParams const& Target)
 {
 	if(pAgentToEvade)
 	{
-		pPrioritySteering->SetTarget(FTargetData{
+		pEvadeBehavior->SetTarget(FTargetData{
 			pAgentToEvade->GetPosition(),
 			pAgentToEvade->GetRotation(),
 			pAgentToEvade->GetLinearVelocity(),
 			pAgentToEvade->GetAngularVelocity(),
 		});
+	}
+
+	pSeekBehavior->SetTarget(Target);
 }

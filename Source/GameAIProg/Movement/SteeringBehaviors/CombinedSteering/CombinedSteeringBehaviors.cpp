@@ -31,8 +31,6 @@ SteeringOutput BlendedSteering::CalculateSteeringInternal(float DeltaT, ASteerin
 
 	for (auto& Behaviour : WeightedBehaviors)
 	{
-		Behaviour.pBehavior->SetTarget(Target);
-		
 		SteeringOutput Steering{Behaviour.pBehavior->CalculateSteering(DeltaT, Agent)};
 		BlendedOutput.LinearVelocity += Steering.LinearVelocity.GetSafeNormal() * Behaviour.Weight;
 		BlendedOutput.AngularVelocity += Steering.AngularVelocity * Behaviour.Weight;
@@ -49,8 +47,6 @@ SteeringOutput PrioritySteering::CalculateSteeringInternal(float DeltaT, ASteeri
 
 	for (const auto& Behavior : PriorityBehaviors)
 	{
-		Behavior->SetTarget(Target);
-		UE_LOG(LogTemp, Warning, TEXT("Agent to evade: %f"), Target.Position.X)
 		Steering = Behavior->CalculateSteering(DeltaT, Agent);
 
 		if (Steering.IsValid)

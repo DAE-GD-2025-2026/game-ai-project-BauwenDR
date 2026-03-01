@@ -22,7 +22,7 @@ SteeringOutput Separation::CalculateSteeringInternal(float DeltaT, ASteeringAgen
 
 	for (int Index{0}; Index < pFlock->GetNrOfNeighbors(); ++Index)
 	{
-		const FVector2D ActorToNeighbor{pFlock->GetNeighbors()[Index]->GetPosition() - Agent.GetPosition()};
+		const FVector2D ActorToNeighbor{Agent.GetPosition() - pFlock->GetNeighbors()[Index]->GetPosition()};
 		// Inverse proportional (normalised devised by distance)
 		Steering.LinearVelocity += ActorToNeighbor / ActorToNeighbor.SquaredLength();
 	}
