@@ -30,19 +30,25 @@ std::vector<FVector2D> Cell::GetRectPoints() const
 // -------------------------
 CellSpace::CellSpace(UWorld* pWorld, float Width, float Height, int Rows, int Cols, int MaxEntities)
 	: pWorld{pWorld}
+	, CellOrigin(-Width / 2, -Height / 2)
 	, SpaceWidth{Width}
 	, SpaceHeight{Height}
 	, NrOfRows{Rows}
 	, NrOfCols{Cols}
+	, CellWidth{Width / Cols}
+	, CellHeight{Height / Rows}
 	, NrOfNeighbors{0}
 {
 	Neighbors.SetNum(MaxEntities);
-	
-	//calculate bounds of a cell
-	CellWidth = Width / Cols;
-	CellHeight = Height / Rows;
 
-	// TODO create the cells
+	Cells.reserve(Rows * Cols);
+	for (int Row{0}; Row < Rows; ++Row)
+	{
+		for (int Col{0}; Col < Cols; ++Col)
+		{
+			Cells.emplace_back(CellOrigin.X + CellWidth * Col, CellOrigin.Y + CellHeight * Row, CellWidth, CellHeight);
+		}
+	}
 }
 
 void CellSpace::AddAgent(ASteeringAgent& Agent)
@@ -70,13 +76,22 @@ void CellSpace::EmptyCells()
 
 void CellSpace::RenderCells() const
 {
-	// TODO Render the cells with the number of agents inside of it
+	const FVector CellExtent{CellWidth / 2, CellHeight / 2, 0.0f};
+	
+	for (const auto &Cell : Cells)
+	{
+		const FVector CellOrigin{CellExtent + FVector{Cell.BoundingBox.Min.X, Cell.BoundingBox.Min.Y, 0.0}};
+
+		DrawDebugBox(pWorld, CellOrigin, CellExtent, FColor::Red);
+	}
 }
 
 int CellSpace::PositionToIndex(FVector2D const & Pos) const
 {
-	// TODO Calculate the index of the cell based on the position
-	return 0;
+	const int Row{FMath::Clamp(static_cast<int>((CellOrigin.Y - Pos.Y) / CellHeight), 0, NrOfRows)};
+	const int Col{FMath::Clamp(static_cast<int>((CellOrigin.X - Pos.X) / CellWidth), 0, NrOfCols)};
+	
+	return Col * Row + Col;
 }
 
 bool CellSpace::DoRectsOverlap(FRect const & RectA, FRect const & RectB)
