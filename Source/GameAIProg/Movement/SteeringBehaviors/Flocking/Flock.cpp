@@ -46,7 +46,10 @@ Flock::Flock(
 		RandomLocation.Z = 0.0f;
 
 		// Spawn the actor at the random location
-		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator)};
+		FActorSpawnParameters params{};
+		params.bNoFail = true;
+		params.bDeferConstruction = true;
+		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator, params)};
 
 		if (Agent == nullptr) continue;
 		
