@@ -40,8 +40,12 @@ void ALevel_GraphTheory::BeginPlay()
 	{
 		Player->SetCameraProjection(ECameraProjectionMode::Orthographic);
 	}
-	
-	// TODO Make the graph and a couple connected nodes here...
+
+	Renderer = GraphRenderer(GetWorld());
+
+	auto nodeId1 = Graph.AddNode(std::make_unique<Node>(FVector2D{0, 0}));
+	auto nodeId2 = Graph.AddNode(std::make_unique<Node>(FVector2D{100, 100}));
+	Graph.AddConnection(nodeId1, nodeId2);
 	
 	// Spawn the Agent
 	Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 

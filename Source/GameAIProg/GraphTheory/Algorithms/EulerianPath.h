@@ -85,5 +85,6 @@ namespace GameAI
 		// TODO start a depth-first-search traversal from the node that has at least one connection
 		
 		// TODO if a node was never visited, this graph is not connected
+		return false;
 	}
 }

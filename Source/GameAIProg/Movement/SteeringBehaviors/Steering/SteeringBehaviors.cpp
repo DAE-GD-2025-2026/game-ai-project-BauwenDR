@@ -77,21 +77,27 @@ SteeringOutput Flee::CalculateSteeringInternal(const float DeltaT, ASteeringAgen
 
 // Arrive
 //*******
-Arrive::Arrive(const ASteeringAgent* Agent)
-	: DefaultSpeed(Agent->GetMaxLinearSpeed())
-{}
+void Arrive::SetTargetRadius(float Radius)
+{
+	TargetRadius = Radius;
+}
 
 SteeringOutput Arrive::CalculateSteeringInternal(const float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
 
-	if (const double Distance{Steering.LinearVelocity.Length()}; Distance < 75.0)
+	if (DefaultSpeed < 0)
+	{
+		DefaultSpeed = Agent.GetMaxLinearSpeed();
+	}
+
+	if (const double Distance{Steering.LinearVelocity.Length()}; Distance < TargetRadius)
 	{
 		Agent.SetMaxLinearSpeed(0.0f);
 	}
-	else if (Distance < 350.0)
+	else if (Distance < TargetRadius * BiggerRadiusFactor)
 	{
-		Agent.SetMaxLinearSpeed(Distance / 350.0 * DefaultSpeed);
+		Agent.SetMaxLinearSpeed(Distance / TargetRadius * BiggerRadiusFactor * DefaultSpeed);
 	}
 	else
 	{
@@ -108,7 +114,7 @@ void Arrive::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const Ste
 	DrawDebugCircle(
 		Agent.GetWorld(),
 		FVector(Agent.GetPosition(), 0.1f),
-		75.0f,
+		TargetRadius,
 		12,
 		FColor::Red,
 		false,
@@ -123,7 +129,7 @@ void Arrive::DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const Ste
 	DrawDebugCircle(
 		Agent.GetWorld(),
 		FVector(Agent.GetPosition(), 0.1f), 
-		350.0f,
+		TargetRadius * BiggerRadiusFactor,
 		12,
 		FColor::Blue,
 		false,

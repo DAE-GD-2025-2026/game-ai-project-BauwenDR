@@ -22,7 +22,7 @@ void PathFollow::SetPath(std::vector<FVector2D>& path)
 	GotoNextPathPoint();
 }
 
-SteeringOutput PathFollow::CalculateSteering(float DeltaTime, ASteeringAgent& Agent)
+SteeringOutput PathFollow::CalculateSteeringInternal(float DeltaTime, ASteeringAgent& Agent)
 {
 	if (currentPathIndex < static_cast<int>(pathVec.size()))
 	{

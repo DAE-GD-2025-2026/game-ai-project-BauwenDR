@@ -42,14 +42,16 @@ protected:
 class Arrive final : public Seek
 {
 public:
-	Arrive(const ASteeringAgent* Agent);
+	void SetTargetRadius(float Radius);
 
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;
 	virtual void DrawDebugLines(float DeltaT, const ASteeringAgent& Agent, const SteeringOutput& Steering) override;
 
 private:
-	float DefaultSpeed{};
+	float DefaultSpeed{-1.0f};
+	float TargetRadius{75.0f};
+	float BiggerRadiusFactor{3.0f};
 };
 
 class Face : public ISteeringBehavior
