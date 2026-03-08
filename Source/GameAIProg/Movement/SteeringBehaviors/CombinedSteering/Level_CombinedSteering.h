@@ -32,8 +32,12 @@ private:
 	bool CanDebugRender = false;
 
 	ASteeringAgent* BlendedAgent{nullptr};
-	BlendedSteering* BlendedSteeringBehavior{};
+	std::unique_ptr<Seek> BlendedSeek{};
+	std::unique_ptr<Wander> BlendedWander{};
+	std::unique_ptr<BlendedSteering> BlendedSteeringBehavior{};
 	
 	ASteeringAgent* PriorityAgent{nullptr};
-	PrioritySteering* PrioritySteeringBehaviour{};
+	std::unique_ptr<Evade> PriorityEvade{};
+	std::unique_ptr<Wander> PriorityWander{};
+	std::unique_ptr<PrioritySteering> PrioritySteeringBehaviour{};
 };

@@ -14,19 +14,23 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	auto SeekWeightBehavior{BlendedSteering::WeightedBehavior{new Seek(), 0.5f}};
-	auto WanderWeightBehavior{BlendedSteering::WeightedBehavior{new Wander(), 0.5f}};
-	BlendedSteeringBehavior = new BlendedSteering({SeekWeightBehavior, WanderWeightBehavior});
+
+	BlendedSeek = std::make_unique<Seek>();
+	BlendedWander = std::make_unique<Wander>();
+	auto SeekWeightBehavior{BlendedSteering::WeightedBehavior{BlendedSeek.get(), 0.5f}};
+	auto WanderWeightBehavior{BlendedSteering::WeightedBehavior{BlendedWander.get(), 0.5f}};
+	BlendedSteeringBehavior = std::make_unique<BlendedSteering>(BlendedSteering({SeekWeightBehavior, WanderWeightBehavior}));
 
 	BlendedAgent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, {0, 0, 0}, FRotator::ZeroRotator);
-	BlendedAgent->SetSteeringBehavior(BlendedSteeringBehavior);
+	BlendedAgent->SetSteeringBehavior(BlendedSteeringBehavior.get());
 	BlendedAgent->SetDebugRenderingEnabled(CanDebugRender);
 
-	PrioritySteeringBehaviour = new PrioritySteering({new Evade(), new Wander()});
+	PriorityEvade = std::make_unique<Evade>();
+	PriorityWander = std::make_unique<Wander>();
+	PrioritySteeringBehaviour = std::make_unique<PrioritySteering>(PrioritySteering({PriorityEvade.get(), PriorityWander.get()}));
 	
 	PriorityAgent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, {100, 0, 0}, FRotator::ZeroRotator);
-	PriorityAgent->SetSteeringBehavior(PrioritySteeringBehaviour);
+	PriorityAgent->SetSteeringBehavior(PrioritySteeringBehaviour.get());
 	PriorityAgent->SetDebugRenderingEnabled(CanDebugRender);
 }
 
@@ -110,16 +114,9 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	}
 #pragma endregion
 
-	// BlendedSteeringBehavior->SetTarget(MouseTarget);
-
-	BlendedSteeringBehavior->SetTarget(FTargetData{
-		PriorityAgent->GetPosition(),
-		PriorityAgent->GetRotation(),
-		PriorityAgent->GetLinearVelocity(),
-		PriorityAgent->GetAngularVelocity(),
-	});
+	BlendedSeek->SetTarget(MouseTarget);
 	
-	PrioritySteeringBehaviour->SetTarget(FTargetData{
+	PriorityEvade->SetTarget(FTargetData{
 		BlendedAgent->GetPosition(),
 		BlendedAgent->GetRotation(),
 		BlendedAgent->GetLinearVelocity(),
