@@ -25,7 +25,7 @@ SteeringOutput Separation::CalculateSteeringInternal(float DeltaT, ASteeringAgen
 		NewTarget += ActorToNeighbor / ActorToNeighbor.SquaredLength();
 	}
 
-	SetTarget(FTargetData{NewTarget});
+	SetTarget(FTargetData{Agent.GetPosition() + NewTarget});
 	return Seek::CalculateSteeringInternal(DeltaT, Agent);
 }
 

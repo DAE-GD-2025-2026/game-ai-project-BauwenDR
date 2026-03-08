@@ -63,8 +63,11 @@ protected:
 	virtual void BeginDestroy() override;
 
 public:
+	bool IsLevelControlled{false};
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void Steer(float DeltaTime);
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

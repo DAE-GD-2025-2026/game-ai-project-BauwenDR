@@ -48,17 +48,18 @@ Flock::Flock(
 	{
 		// Generate a random location within the specified radius
 		FVector RandomLocation = RandomStream.VRand() * WorldSize / 2.0f;
-		RandomLocation.Z = 0.0f;
+		RandomLocation.Z = 88.0f;
 
 		// Spawn the actor at the random location
-		FActorSpawnParameters params{};
-		params.bNoFail = true;
-		params.bDeferConstruction = true;
-		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator, params)};
+		FActorSpawnParameters Params{};
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		auto Agent{pWorld->SpawnActor<ASteeringAgent>(AgentClass, RandomLocation, FRotator::ZeroRotator, Params)};
 
 		if (Agent == nullptr) continue;
 		
 		Agent->SetDebugRenderingEnabled(false);
+		Agent->IsLevelControlled = true;
+		Agent->SetSteeringBehavior(pPrioritySteering.get());
 
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 		pPartitionedSpace->AddAgent(Agent);
@@ -68,15 +69,34 @@ Flock::Flock(
 		Agents[Index] = Agent;
 		++Index;
 	}
+
+	if (pAgentToEvade)
+	{
+		pAgentToEvade->SetSteeringBehavior(pEvadeWader.get());
+		pAgentToEvade->PrimaryActorTick.bCanEverTick = false;
+		pAgentToEvade->IsLevelControlled = true;
+	}
 }
 
 Flock::~Flock()
 {
- // TODO: Cleanup any additional data
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
+	NrOfNeighbors = 0;
+#endif
 }
 
 void Flock::Tick(float DeltaTime)
 {
+	if(pAgentToEvade)
+	{
+		pEvadeBehavior->SetTarget(FTargetData{
+			pAgentToEvade->GetPosition(),
+			pAgentToEvade->GetRotation(),
+			pAgentToEvade->GetLinearVelocity(),
+			pAgentToEvade->GetAngularVelocity(),
+		});
+	}
+
 	for (int Index{0}; Index < FlockSize; ++Index)
 	{
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
@@ -86,17 +106,17 @@ void Flock::Tick(float DeltaTime)
 		RegisterNeighbors(Agents[Index]);
 #endif
 
-		const SteeringOutput Output{pPrioritySteering->CalculateSteering(DeltaTime, *Agents[Index])};
-		
-		Agents[Index]->AddMovementInput(FVector{Output.LinearVelocity, 0.f});
+		Agents[Index]->Steer(DeltaTime);
 
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
 		OldPositions[Index] = Agents[Index]->GetPosition();
+#endif
+		
 	}
 	
 	if (pAgentToEvade)
 	{
-		const SteeringOutput Steering{pEvadeWader->CalculateSteering(DeltaTime, *pAgentToEvade)};
-		pAgentToEvade->AddMovementInput(FVector{Steering.LinearVelocity, 0.0f});
+		pAgentToEvade->Steer(DeltaTime);
 	}
 }
 
@@ -319,15 +339,5 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 
 void Flock::SetTarget_Seek(FSteeringParams const& Target)
 {
-	if(pAgentToEvade)
-	{
-		pEvadeBehavior->SetTarget(FTargetData{
-			pAgentToEvade->GetPosition(),
-			pAgentToEvade->GetRotation(),
-			pAgentToEvade->GetLinearVelocity(),
-			pAgentToEvade->GetAngularVelocity(),
-		});
-	}
-
 	pSeekBehavior->SetTarget(Target);
 }

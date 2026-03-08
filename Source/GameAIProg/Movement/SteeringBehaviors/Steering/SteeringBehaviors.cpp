@@ -170,13 +170,17 @@ SteeringOutput Face::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Age
 
 SteeringOutput Pursuit::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)
 {
+	const FTargetData OriginalTarget{Target};
+	
 	const FVector2D Distance{Target.Position - Agent.GetPosition()};
 	const float SeekSpeed = Distance.Length() / Agent.GetMaxLinearSpeed();
 	const FVector2D FuturePosition{Target.Position + Target.LinearVelocity * SeekSpeed};
 
 	SetTarget(FTargetData(FuturePosition));
+	auto Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};
+	SetTarget(OriginalTarget);
 
-	return Seek::CalculateSteeringInternal(DeltaT, Agent);
+	return Steering;
 }
 
 SteeringOutput Evade::CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent)

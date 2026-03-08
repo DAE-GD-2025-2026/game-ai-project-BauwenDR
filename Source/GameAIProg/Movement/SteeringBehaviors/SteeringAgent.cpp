@@ -28,6 +28,14 @@ void ASteeringAgent::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!IsLevelControlled)
+	{
+		Steer(DeltaTime);
+	}
+}
+
+void ASteeringAgent::Steer(float DeltaTime)
+{
 	if (SteeringBehavior)
 	{
 		const SteeringOutput Output{SteeringBehavior->CalculateSteering(DeltaTime, *this)};
