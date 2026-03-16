@@ -205,7 +205,7 @@ void UGraphEditorComponent::MoveNodeBegin()
 {
 	if (!EditedGraph || CurrentlyHoveredNodeId == GameAI::Graphs::InvalidNodeId) return;
 	bIsMovingNode = true;
-	bHasGraphUpdated = true;
+	//bHasGraphUpdated = true;
 }
 
 void UGraphEditorComponent::MoveNodeEnd()

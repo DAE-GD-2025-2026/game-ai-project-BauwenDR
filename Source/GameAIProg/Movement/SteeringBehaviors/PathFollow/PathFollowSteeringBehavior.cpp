@@ -32,6 +32,7 @@ SteeringOutput PathFollow::CalculateSteeringInternal(float DeltaTime, ASteeringA
 		if (ToPathPoint.SizeSquared() < agentRadius * agentRadius)
 		{
 			//Reached point of the path
+			pArrive->ResetActorSpeed(Agent);
 			GotoNextPathPoint();
 		}
 	}

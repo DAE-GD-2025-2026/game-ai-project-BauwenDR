@@ -73,7 +73,6 @@ namespace GameAI
 		Graph GraphCopy = m_pGraph->Clone();
 		std::vector<Node*> Path = {};
 		std::vector<Node*> Nodes = GraphCopy.GetActiveNodes();
-		int CurrentNodeId{Graphs::InvalidNodeId};
 
 		if (GraphEulerianity == Eulerianity::notEulerian)
 		{
@@ -81,9 +80,9 @@ namespace GameAI
 		}
 
 		// Start at the first note with uneven nodes, if none are found, we take the last one
-		CurrentNodeId = std::ranges::find_if(Nodes, [&GraphCopy](const auto &Node)
+		int CurrentNodeId = std::ranges::find_if(Nodes, [&GraphCopy](const auto &Node)
 		{
-			return (GraphCopy.FindConnectionsFrom(Node->GetId()).size() & 1) == 0;
+			return (GraphCopy.FindConnectionsFrom(Node->GetId()).size() & 1) != 0;
 		}) - Nodes.begin();
 		
 		std::stack<int> NodeStack;
@@ -92,19 +91,18 @@ namespace GameAI
 		while (!NodeStack.empty())
 		{
 			CurrentNodeId = NodeStack.top();
+			NodeStack.pop();
 
 			auto Connections = GraphCopy.FindConnectionsFrom(CurrentNodeId);
 
 			if (!Connections.empty()) {
-				Path.push_back(m_pGraph->GetNode(CurrentNodeId).get()); // Get Node from original graph
+				Path.push_back(GraphCopy.GetNode(CurrentNodeId).get()); // Get Node from original graph
 
-				int NeighborId = Connections.front()->GetFromId(); // Choose first available neighbor
+				int NeighborId = Connections.front()->GetToId(); // Choose first available neighbor
         
 				GraphCopy.RemoveConnection(CurrentNodeId, NeighborId);
 
 				NodeStack.push(NeighborId);
-			} else {
-				NodeStack.pop();
 			}
 		}
 

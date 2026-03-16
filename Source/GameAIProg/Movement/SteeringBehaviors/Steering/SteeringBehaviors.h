@@ -43,6 +43,7 @@ class Arrive final : public Seek
 {
 public:
 	void SetTargetRadius(float Radius);
+	void ResetActorSpeed(ASteeringAgent& Agent) const;
 
 protected:
 	virtual SteeringOutput CalculateSteeringInternal(float DeltaT, ASteeringAgent& Agent) override;

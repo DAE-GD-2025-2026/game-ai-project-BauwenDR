@@ -82,6 +82,14 @@ void Arrive::SetTargetRadius(float Radius)
 	TargetRadius = Radius;
 }
 
+void Arrive::ResetActorSpeed(ASteeringAgent& Agent) const
+{
+	if (DefaultSpeed > 0)
+	{
+		Agent.SetMaxLinearSpeed(DefaultSpeed);
+	}
+}
+
 SteeringOutput Arrive::CalculateSteeringInternal(const float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput Steering{Seek::CalculateSteeringInternal(DeltaT, Agent)};

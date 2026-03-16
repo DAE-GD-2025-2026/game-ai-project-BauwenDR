@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Algorithms/EulerianPath.h"
 #include "Movement/SteeringBehaviors/PathFollow/PathFollowSteeringBehavior.h"
 #include "Shared/Level_Base.h"
 #include "Shared/Graph/Graph.h"
@@ -37,6 +38,7 @@ private:
 	GameAI::Graph Graph{false};
 	GameAI::GraphRenderer Renderer{nullptr};
 	GameAI::GraphNodeFactory<GameAI::Node> NodeFactory{};
+	GameAI::EulerianPath EulerianPath{&Graph};
 	
 	UPROPERTY()
 	UGraphEditorComponent* PlayerGraphEditor{}; // ref
