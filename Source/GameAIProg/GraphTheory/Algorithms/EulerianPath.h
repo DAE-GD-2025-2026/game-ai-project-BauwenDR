@@ -106,8 +106,9 @@ namespace GameAI
 			}
 		}
 
+		// Don't forget to the push the last visited ID
 		if (!Path.empty()) {
-			Path.push_back(m_pGraph->GetNode(CurrentNodeId).get()); // Get Node from original graph
+			Path.push_back(m_pGraph->GetNode(CurrentNodeId).get());
 		}
 
 		std::ranges::reverse(Path);
