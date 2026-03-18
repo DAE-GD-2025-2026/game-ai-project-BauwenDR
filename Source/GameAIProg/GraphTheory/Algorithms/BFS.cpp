@@ -17,7 +17,7 @@ std::vector<Node*> BFS::FindPath(Node* const pStartNode, Node* const pDestinatio
 {
 	std::vector<Node*> Path{};
 	Graph GraphCopy(pGraph->Clone());
-	int CurrentNodeId = pGraph->GetNodes().front()->GetId();
+	int CurrentNodeId = pStartNode->GetId();
 
 	std::queue<int> NodeQueue;
 	NodeQueue.push(CurrentNodeId);
