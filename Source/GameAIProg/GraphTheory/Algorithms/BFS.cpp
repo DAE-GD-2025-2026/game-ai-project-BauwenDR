@@ -2,6 +2,7 @@
 
 #include <map>
 #include <queue>
+#include <unordered_set>
 
 #include "Shared/Graph/Graph.h"
 
@@ -13,39 +14,51 @@ BFS::BFS(Graph* const pGraph)
 }
 
 // TODO Breath First Search Algorithm searches for a path from the startNode to the destinationNode
-std::vector<Node*> BFS::FindPath(Node* const pStartNode, Node* const pDestinationNode) const
+std::vector<Node*> BFS::FindPath(Node const * const pStartNode, Node const * const pDestinationNode) const
 {
-	std::vector<Node*> Path{};
-	Graph GraphCopy(pGraph->Clone());
-	int CurrentNodeId = pStartNode->GetId();
+	std::vector<Node*> path;
+	if (!pStartNode || !pDestinationNode) return path;
+	int startId = pStartNode->GetId();
+	int destId = pDestinationNode->GetId();
+	if (startId == destId) {
+		path.push_back(pGraph->GetNode(startId).get());
+		return path;
+	}
 
-	std::queue<int> NodeQueue;
-	NodeQueue.push(CurrentNodeId);
+	std::queue<int> q;
+	std::unordered_map<int,int> parent;     // childId -> parentId
+	std::unordered_set<int> visited;
 
-	while (!NodeQueue.empty())
-	{
-		CurrentNodeId = NodeQueue.front();
-		NodeQueue.pop();
+	q.push(startId);
+	visited.insert(startId);
+	parent[startId] = -1; // sentinel
 
-		if (CurrentNodeId == pDestinationNode->GetId())
-		{
-			Path.push_back(pGraph->GetNode(CurrentNodeId).get());
-			break;
-		}
+	bool found = false;
+	while (!q.empty() && !found) {
+		int current = q.front(); q.pop();
 
-		auto Connections = GraphCopy.FindConnectionsFrom(CurrentNodeId);
-
-		if (!Connections.empty()) {
-			Path.push_back(GraphCopy.GetNode(CurrentNodeId).get()); // Get Node from original graph
-
-			int NeighborId = Connections.front()->GetToId(); // Choose first available neighbor
-        
-			GraphCopy.RemoveConnection(CurrentNodeId, NeighborId);
-
-			NodeQueue.push(NeighborId);
+		// iterate all outgoing connections from current
+		auto connections = pGraph->FindConnectionsFrom(current); // use original graph
+		for (const auto &connPtr : connections) {
+			int neighbor = connPtr->GetToId();
+			if (visited.find(neighbor) != visited.end()) continue;
+			visited.insert(neighbor);
+			parent[neighbor] = current;
+			if (neighbor == destId) {
+				found = true;
+				break;
+			}
+			q.push(neighbor);
 		}
 	}
 
-	std::ranges::reverse(Path);
-	return Path;
+	if (!found) return path; // empty: no path
+
+	// Reconstruct path from dest to start
+	for (int at = destId; at != -1; at = parent[at]) {
+		path.push_back(pGraph->GetNode(at).get());
+	}
+	std::reverse(path.begin(), path.end());
+	return path;
 }
+
