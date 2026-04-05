@@ -13,7 +13,6 @@ BFS::BFS(Graph* const pGraph)
 {
 }
 
-// TODO Breath First Search Algorithm searches for a path from the startNode to the destinationNode
 std::vector<Node*> BFS::FindPath(Node const * const pStartNode, Node const * const pDestinationNode) const
 {
 	std::vector<Node*> path;

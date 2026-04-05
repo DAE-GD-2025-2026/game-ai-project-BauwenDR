@@ -131,7 +131,6 @@ namespace GameAI
 			Visited[NodeId] = true;
 			VisitAllNodesDFS(Nodes, Visited, NodeId);
 		}
-		// TODO Tip: use an index-based for-loop to find the correct index
 	}
 
 	inline bool EulerianPath::IsConnected() const
