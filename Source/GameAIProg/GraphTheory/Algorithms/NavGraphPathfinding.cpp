@@ -41,8 +41,10 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 				const auto EdgeIndex = OptionalIndex.value();
 				const auto NodeId = pNavGraph->GetNodeIdFromEdgeIndex(EdgeIndex);
 
-				Connection NewConnection{nodeIdx, NodeId};
-				GraphCopy->AddConnection(nodeIdx, NodeId);
+				if (NodeId > 0 && nodeIdx > 0)
+				{
+					GraphCopy->AddConnection(nodeIdx, NodeId);
+				}
 			}
 		);
 	};
@@ -54,14 +56,6 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	//Run A star on new graph
 	const auto PathFinder = std::make_unique<AStar>(GraphCopy.get(), HeuristicFunctions::Chebyshev);
 	const auto FoundPath = PathFinder->FindPath(StartNode, DestNode);
-
-	UE_LOG(LogTemp, Log, TEXT("Path length %d"), FoundPath.size())
-
-	//Debug Visualisation
-
-	// Extra: Run optimiser on new graph (First check if everything works without SSFA!)
-	// debugPortals = SSFA::FindPortals(nodes, *pNavGraph->GetNavPolygon());
-	// finalPath = SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
 
 	FinalPath.reserve(FoundPath.size());
 	std::ranges::transform(std::begin(FoundPath), std::end(FoundPath), std::back_inserter(FinalPath), [] (auto &Node)

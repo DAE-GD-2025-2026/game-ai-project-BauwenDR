@@ -52,21 +52,42 @@ void GameAI::NavGraph::CreateNavigationGraph()
     Nodes.clear();
     Connections.clear();
 
-	// 1. Go over all the edges of the navigation mesh and create nodes
+	// 1. Go over all the edges of the navigation mesh and create nodes when there is a neighbouring triangle
     std::vector<int> EdgeToNodeId{};
     EdgeToNodeId.resize(pNavPoly->GetEdges().size(), -1);
 
-    for (size_t EdgeIndex{0}; EdgeIndex < pNavPoly->GetEdges().size(); ++EdgeIndex)
-    {
-        const auto &Edge{pNavPoly->GetEdges()[EdgeIndex]};
-        const FVector P1{Edge.GetP1(*pNavPoly)};
-        const FVector P2{Edge.GetP2(*pNavPoly)};
+	for (const auto &Triangle : pNavPoly->GetTriangles())
+	{
+		for (const auto &Edge : Triangle.GetEdges())
+		{
+			const auto OptionalEdgeIndex{pNavPoly->FindEdgeIndex(Edge)};
+			if (!OptionalEdgeIndex.has_value() || OptionalEdgeIndex.value() < 0) continue;
+			const auto EdgeIndex{OptionalEdgeIndex.value()};
 
-        const FVector2D Midpoint{ (P1.X + P2.X) * 0.5f, (P1.Y + P2.Y) * 0.5f };
+			const auto TriangleNeighbors{pNavPoly->GetTriangleNeighbors(Triangle)};
+			const auto HasNeighbor{std::ranges::find_if(TriangleNeighbors, [this, &Edge] (const auto &NeighborId)
+			{
+				auto Neighbor{pNavPoly->GetTriangle(NeighborId)};
+				auto NeighborEdges{Neighbor.GetEdges()};
+				
+				return std::ranges::find_if(NeighborEdges, [&Edge](const auto &NeighborEdge)
+				{
+					return NeighborEdge == Edge;
+				}) != NeighborEdges.end();
+			}) != TriangleNeighbors.end()};
 
-        const int NewNodeId{AddNode(std::make_unique<NavGraphNode>(Midpoint, EdgeIndex))};
-        EdgeToNodeId[EdgeIndex] = NewNodeId;
-    }
+			if (HasNeighbor && EdgeToNodeId[EdgeIndex] < 0)
+			{
+				const FVector P1{Edge.GetP1(*pNavPoly)};
+				const FVector P2{Edge.GetP2(*pNavPoly)};
+
+				const FVector2D Midpoint{ (P1.X + P2.X) * 0.5f, (P1.Y + P2.Y) * 0.5f };
+
+				const int NewNodeId{AddNode(std::make_unique<NavGraphNode>(Midpoint, EdgeIndex))};
+				EdgeToNodeId[EdgeIndex] = NewNodeId;
+			}
+		}
+	}
 
 	// 2. Create connections now that every node is created	
 		// 2 valid nodes -> 1 connection
@@ -93,6 +114,7 @@ void GameAI::NavGraph::CreateNavigationGraph()
         auto connectPair = [&](int const Lhs, int const Rhs)
         {
             if (Lhs == Rhs) return;
+        	
             if (!FindConnection(Lhs, Rhs))
             {
                 AddConnection(Lhs, Rhs);
