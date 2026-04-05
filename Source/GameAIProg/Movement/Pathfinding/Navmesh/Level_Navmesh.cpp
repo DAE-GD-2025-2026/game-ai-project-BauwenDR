@@ -99,7 +99,7 @@ void ALevel_Navmesh::Tick(float DeltaTime)
 	
 	if (bDrawPortals)
 	{
-		for (const auto Portal : NavPortals)
+		for (const auto &Portal : NavPortals)
 		{
 			DrawDebugLine(
 				GetWorld(), 
