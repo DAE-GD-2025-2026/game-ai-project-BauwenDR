@@ -114,9 +114,9 @@ void CellSpace::RenderCells() const
 	
 	for (const auto &Cell : Cells)
 	{
-		const FVector CellOrigin{CellExtent + FVector{Cell.BoundingBox.Min.X, Cell.BoundingBox.Min.Y, 0.0}};
+		const FVector Origin{CellExtent + FVector{Cell.BoundingBox.Min.X, Cell.BoundingBox.Min.Y, 0.0}};
 
-		DrawDebugBox(pWorld, CellOrigin, CellExtent, FColor::Red);
+		DrawDebugBox(pWorld, Origin, CellExtent, FColor::Red);
 	}
 }
 

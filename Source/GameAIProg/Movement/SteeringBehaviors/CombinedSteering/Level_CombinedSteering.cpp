@@ -2,7 +2,6 @@
 
 #include "imgui.h"
 
-
 // Sets default values
 ALevel_CombinedSteering::ALevel_CombinedSteering()
 {

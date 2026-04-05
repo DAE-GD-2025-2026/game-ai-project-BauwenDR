@@ -35,7 +35,7 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	const auto DestNode{GraphCopy->GetNodeAs<Node>(DestIdx)};
 
 	// Connect new nodes to the graph
-	auto connectNodeToTriangleEdges = [&](size_t NodeIdx, const auto& Triangle) {
+	auto connectNodeToTriangleEdges = [&](int NodeIdx, const auto& Triangle) {
 		std::ranges::for_each(Triangle->GetEdges(), [&](const auto& Edge) {
 				auto OptionalIndex = pNavGraph->GetNavPolygon()->FindEdgeIndex(Edge);
 				if (!OptionalIndex.has_value()) return;

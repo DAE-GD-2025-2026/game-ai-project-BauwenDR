@@ -123,9 +123,9 @@ namespace GameAI
 		auto Connections{m_pGraph->FindConnectionsFrom(StartIndex)};
 		for (const auto Connection : Connections)
 		{
-			const int NodeId { std::ranges::find_if(Nodes, [&Connection](const auto &Node) {return Node->GetId() == Connection->GetToId();}) - Nodes.begin()};
+			const auto NodeId { std::ranges::find_if(Nodes, [&Connection](const auto &Node) {return Node->GetId() == Connection->GetToId();}) - Nodes.begin()};
 
-			if (NodeId >= Nodes.size()) continue;
+			if (NodeId >= static_cast<ptrdiff_t>(Nodes.size())) continue;
 			if (Visited[NodeId]) continue;
 
 			Visited[NodeId] = true;

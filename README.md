@@ -4,18 +4,26 @@ Each assignment has one (or more levels).
 
 ## Levels
 ### Steering
-This level contains a level where each steering behaviour can be tested individually.
+A scene with dedicated controls to test each individual steering behaviour separately.
+Includes UI toggles for behaviours such as Seek, Flee, Arrive, Pursuit, Evade abd Wander. Each behaviour can be enabled in isolation and configured with parameters, so you can observe how parameter changes affect motion.
 
 ### Combined Steering
-This level contains 2 arrow actors, one that can be controlled (sort of) by settings the target using the mouse cursor and a left mouse click.
-There are also UI options to set which one of the 2 behaviour should be priotized
-The other actor has a wander behaviour, but prioritizes not hitting the first actor.
+Two arrow actors:
+- One actor is controlled indirectly by setting its target with the mouse cursor and left-click.
+- UI options allow selecting which of the two behaviours has priority.
+- The second actor uses a wander behaviour but prioritizes avoiding collisions with the first actor.
 
 ### Flocking
-A level containing one actor that wanders around and a flock of actors. This flock prioritized avoiding the rouge wandering agent. When they are not dodging they act as a flock of birds.
+A scene with a single wandering agent and a flock of agents. The flock prioritizes avoiding the rogue wandering agent; when not evading, the flock behaves like a standard bird flock.
 
-### GraphTheory
-Following Euler grahps
+### Graph Theory
+Create a graph and have an actor follow it using a path-following steering behaviour (a seek agent moving between targets). The agent follows the path only if it is Eulerian.
+
+### PathFinding
+A tile grid containing normal, dirt, and water tiles. A* is used for navigation; movement is slower on dirt and water tiles are impassable.
+
+### Navmesh
+A scene where an actor uses the calculated navmash to navigate around the scene.
 
 ## Running
 - Open the .uproject file in VS or Rider (or any other IDE, just never launch the uproject directly in Unreal Engine)
