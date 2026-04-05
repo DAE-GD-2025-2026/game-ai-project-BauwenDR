@@ -28,22 +28,23 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	
 	//Create Extra node for the Start Node (Agent's position)
 	//Create extra node for the endNode
-	const auto StartIdx{GraphCopy->AddNode(std::make_unique<Node>(startPos))};
+	const auto StartIdx{GraphCopy->AddNode(std::make_unique<NavGraphNode>(startPos, -1))};
+	const auto DestIdx{GraphCopy->AddNode(std::make_unique<NavGraphNode>(endPos, -1))};
+	
 	const auto StartNode{GraphCopy->GetNodeAs<Node>(StartIdx)};
-	const auto DestIdx{GraphCopy->AddNode(std::make_unique<Node>(endPos))};
 	const auto DestNode{GraphCopy->GetNodeAs<Node>(DestIdx)};
 
 	// Connect new nodes to the graph
-	auto connectNodeToTriangleEdges = [&](size_t nodeIdx, const auto& triangle) {
-		std::ranges::for_each(triangle->GetEdges(), [&](const auto& Edge) {
+	auto connectNodeToTriangleEdges = [&](size_t NodeIdx, const auto& Triangle) {
+		std::ranges::for_each(Triangle->GetEdges(), [&](const auto& Edge) {
 				auto OptionalIndex = pNavGraph->GetNavPolygon()->FindEdgeIndex(Edge);
 				if (!OptionalIndex.has_value()) return;
 				const auto EdgeIndex = OptionalIndex.value();
 				const auto NodeId = pNavGraph->GetNodeIdFromEdgeIndex(EdgeIndex);
 
-				if (NodeId > 0 && nodeIdx > 0)
-				{
-					GraphCopy->AddConnection(nodeIdx, NodeId);
+				if (NodeId > 0) {
+					Connection NewConnection{NodeIdx, NodeId};
+					GraphCopy->AddConnection(NodeIdx, NodeId);
 				}
 			}
 		);
@@ -53,7 +54,7 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	connectNodeToTriangleEdges(DestIdx,  DestTriangle);
 	GraphCopy->SetConnectionCostsToDistances();
 
-	//Run A star on new graph
+	//Run AStar on new graph
 	const auto PathFinder = std::make_unique<AStar>(GraphCopy.get(), HeuristicFunctions::Chebyshev);
 	const auto FoundPath = PathFinder->FindPath(StartNode, DestNode);
 
@@ -63,7 +64,12 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 		return Node->GetPosition();
 	});
 	FinalPath.emplace_back(DestNode->GetPosition());
-	
+
+	//Debug Visualisation
+	debugPortals = SSFA::FindPortals(FoundPath, *pNavGraph->GetNavPolygon());
+	FinalPath = SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
+	debugNodePositions = FinalPath;
+
 	return FinalPath;
 }
 
