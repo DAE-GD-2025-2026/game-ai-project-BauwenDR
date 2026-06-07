@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "State.h"
 #include "Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 
