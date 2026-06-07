@@ -1,3 +1,6 @@
+# Extra in the project
+- 5 - Pathfinding: Fallback path
+
 # Game AI Project
 This repository contains my Game AI Programming (Algorithms 2) assignments.
 Each assignment has one (or more levels).

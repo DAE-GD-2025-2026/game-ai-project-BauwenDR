@@ -1,58 +1,61 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "FSMComponent.h"
 
+#include "DecisionMaking/GameAIController.h"
+#include "Movement/SteeringBehaviors/SteeringAgent.h"
 
 // Sets default values for this component's properties
-UFSMComponent::UFSMComponent()
+UFsmComponent::UFsmComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	
 	// TODO Setup FSM
+	Instance = std::make_unique<GameAI::FSM::FSM>();
 }
 
-
-void UFSMComponent::AddState(std::unique_ptr<GameAI::FSM::State>&& NewState)
+void UFsmComponent::AddState(std::unique_ptr<GameAI::FSM::FState>&& NewState, bool IsInitial) const
 {
-	// TODO
+	Instance->AddState(std::move(NewState), IsInitial);
 }
 
-void UFSMComponent::AddTransition(GameAI::FSM::State* From, GameAI::FSM::State* To, std::function<bool()> EvalFunc) const
+void UFsmComponent::AddTransition(GameAI::FSM::FState* From, GameAI::FSM::FState* To, std::function<bool()> EvalFunc) const
 {
-	// TODO
+	Instance->AddTransition(From, {To, EvalFunc});
 }
 
 // Called when the game starts
-void UFSMComponent::BeginPlay()
+void UFsmComponent::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-
 // Called every frame
-void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UFsmComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	// TODO
+	if (ASteeringAgent* Agent = Cast<ASteeringAgent>(GetOwner()); Agent)
+		Instance->Update(Agent);
 }
 
-void UFSMComponent::StartLogic()
+void UFsmComponent::StartLogic()
 {
 	Super::StartLogic();
 
-	// TODO
+	if (auto Agent = Cast<ASteeringAgent>(GetOwner()); Agent)
+		Instance->StartLogic(Agent);
 }
 
-void UFSMComponent::StopLogic(const FString& Reason)
+void UFsmComponent::StopLogic(const FString& Reason)
 {
-	// TODO
+	Super::StopLogic(Reason);
+	
+	if (ASteeringAgent* Agent = Cast<ASteeringAgent>(GetOwner()); Agent)
+		Instance->StopLogic(Agent);
 }
 
-bool UFSMComponent::IsRunning() const
+bool UFsmComponent::IsRunning() const
 {
 	return bIsRunning;
 }
-
